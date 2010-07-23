@@ -94,26 +94,30 @@ class RecordingFallbackHandler(tornado.web.FallbackHandler):
     else:
       super(RecordingFallbackHandler, self).prepare()
 
-def _recording_request(request):
+def _request_info(request):
+  '''Returns a tuple (method, url) for use in recording traces.
+
+  Accepts either a url or HTTPRequest object, like HTTPClient.fetch.
+  '''
   if isinstance(request, tornado.httpclient.HTTPRequest):
-    return request.url
+    return (request.method, request.url)
   else:
-    return request
+    return ('GET', request)
 
 class HTTPClient(tornado.httpclient.HTTPClient):
   def fetch(self, request, *args, **kwargs):
-    recording_request = _recording_request(request)
-    recording.pre_call_hook('http', 'sync', recording_request, None)
+    method, url = _request_info(request)
+    recording.pre_call_hook('HTTP', method, url, None)
     response = super(HTTPClient, self).fetch(request, *args, **kwargs)
-    recording.post_call_hook('http', 'sync', recording_request, None)
+    recording.post_call_hook('HTTP', method, url, None)
     return response
 
 class AsyncHTTPClient(AsyncHTTPClient):
   def fetch(self, request, callback, *args, **kwargs):
-    recording_request = _recording_request(request)
-    recording.pre_call_hook('http', 'async', recording_request, None)
+    method, url = _request_info(request)
+    recording.pre_call_hook('HTTP', method, url, None)
     def wrapper(request, callback, response, *args):
-      recording.post_call_hook('http', 'async', recording_request, None)
+      recording.post_call_hook('HTTP', method, url, None)
       callback(response)
     super(AsyncHTTPClient, self).fetch(
       request,
