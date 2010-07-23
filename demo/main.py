@@ -1,7 +1,17 @@
 #!/usr/bin/env python
-#
-# export PYTHONPATH=.:../tornado:/usr/local/google_appengine:/usr/local/google_appengine/lib/webob
-# $PWD/demo/main.py --enable_appstats
+'''Demo of appstats tracing.
+
+Starts a simple server with appstats enabled.  Go to http://localhost:8888/
+to generate some sample data, then go to http://localhost:8888/appstats/
+to see the results.
+
+Requires tornado, tornado_tracing, and the google appengine sdk to be
+on $PYTHONPATH.  It also doesn't like it when the app is started using
+a relative path, so run it with something like this:
+
+  export PYTHONPATH=.:../tornado:/usr/local/google_appengine:/usr/local/google_appengine/lib/webob
+  $PWD/demo/main.py
+'''
 
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -24,6 +34,9 @@ class DelayHandler(recording.RecordingRequestHandler):
   def handle_timeout(self):
     self.finish("ok")
 
+# A handler that performs several HTTP requests taking different amount of
+# time.  It waits for the first request to finish, then issues three requests
+# in parallel.
 class RootHandler(recording.RecordingRequestHandler):
   @asynchronous
   def get(self):
@@ -48,10 +61,12 @@ class RootHandler(recording.RecordingRequestHandler):
                       self.handle_step2_fetch)
 
   def step3(self):
-    self.finish('all done')
+    self.finish('All done. See results <a href="/appstats/">here</a>.')
 
 def main():
   parse_command_line()
+  # doesn't make much sense to run this without appstats enabled
+  options.enable_appstats = True
   recording.setup_memcache([options.memcache])
 
   app = Application([
