@@ -17,6 +17,7 @@ from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.options import define, options, parse_command_line
 from tornado.web import Application, asynchronous
+from tornado_tracing import config
 from tornado_tracing import recording
 
 import time
@@ -67,12 +68,12 @@ def main():
   parse_command_line()
   # doesn't make much sense to run this without appstats enabled
   options.enable_appstats = True
-  recording.setup_memcache([options.memcache])
+  config.setup_memcache([options.memcache])
 
   app = Application([
       ('/', RootHandler),
       ('/delay', DelayHandler),
-      recording.get_urlspec('/appstats/.*'),
+      config.get_urlspec('/appstats/.*'),
       ], debug=True)
   server = HTTPServer(app)
   server.listen(options.port)
