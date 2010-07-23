@@ -26,58 +26,58 @@ define('port', type=int, default=8888)
 define('memcache', default='localhost:11211')
 
 class DelayHandler(recording.RecordingRequestHandler):
-  @asynchronous
-  def get(self):
-    IOLoop.instance().add_timeout(
-      time.time() + int(self.get_argument('ms')) / 1000.0,
-      self.handle_timeout)
+    @asynchronous
+    def get(self):
+        IOLoop.instance().add_timeout(
+          time.time() + int(self.get_argument('ms')) / 1000.0,
+          self.handle_timeout)
 
-  def handle_timeout(self):
-    self.finish("ok")
+    def handle_timeout(self):
+        self.finish("ok")
 
 # A handler that performs several HTTP requests taking different amount of
 # time.  It waits for the first request to finish, then issues three requests
 # in parallel.
 class RootHandler(recording.RecordingRequestHandler):
-  @asynchronous
-  def get(self):
-    self.client = recording.AsyncHTTPClient()
-    self.client.fetch('http://localhost:%d/delay?ms=100' % options.port,
-                      self.step2)
+    @asynchronous
+    def get(self):
+        self.client = recording.AsyncHTTPClient()
+        self.client.fetch('http://localhost:%d/delay?ms=100' % options.port,
+                          self.step2)
 
-  def handle_step2_fetch(self, response):
-    assert response.body == 'ok'
-    self.fetches_remaining -= 1
-    if self.fetches_remaining == 0:
-      self.step3()
+    def handle_step2_fetch(self, response):
+        assert response.body == 'ok'
+        self.fetches_remaining -= 1
+        if self.fetches_remaining == 0:
+            self.step3()
 
-  def step2(self, response):
-    assert response.body == 'ok'
-    self.fetches_remaining = 3
-    self.client.fetch('http://localhost:%d/delay?ms=50' % options.port,
-                      self.handle_step2_fetch)
-    self.client.fetch('http://localhost:%d/delay?ms=20' % options.port,
-                      self.handle_step2_fetch)
-    self.client.fetch('http://localhost:%d/delay?ms=30' % options.port,
-                      self.handle_step2_fetch)
+    def step2(self, response):
+        assert response.body == 'ok'
+        self.fetches_remaining = 3
+        self.client.fetch('http://localhost:%d/delay?ms=50' % options.port,
+                          self.handle_step2_fetch)
+        self.client.fetch('http://localhost:%d/delay?ms=20' % options.port,
+                          self.handle_step2_fetch)
+        self.client.fetch('http://localhost:%d/delay?ms=30' % options.port,
+                          self.handle_step2_fetch)
 
-  def step3(self):
-    self.finish('All done. See results <a href="/appstats/">here</a>.')
+    def step3(self):
+        self.finish('All done. See results <a href="/appstats/">here</a>.')
 
 def main():
-  parse_command_line()
-  # doesn't make much sense to run this without appstats enabled
-  options.enable_appstats = True
-  config.setup_memcache([options.memcache])
+    parse_command_line()
+    # doesn't make much sense to run this without appstats enabled
+    options.enable_appstats = True
+    config.setup_memcache([options.memcache])
 
-  app = Application([
-      ('/', RootHandler),
-      ('/delay', DelayHandler),
-      config.get_urlspec('/appstats/.*'),
-      ], debug=True)
-  server = HTTPServer(app)
-  server.listen(options.port)
-  IOLoop.instance().start()
+    app = Application([
+        ('/', RootHandler),
+        ('/delay', DelayHandler),
+        config.get_urlspec('/appstats/.*'),
+        ], debug=True)
+    server = HTTPServer(app)
+    server.listen(options.port)
+    IOLoop.instance().start()
 
 if __name__ == '__main__':
-  main()
+    main()
