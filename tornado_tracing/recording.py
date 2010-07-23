@@ -12,13 +12,16 @@ import memcache
 import tornado.httpclient
 import tornado.web
 import tornado.wsgi
+import warnings
 
-from google.appengine.api import memcache as appengine_memcache
-from google.appengine.api import lib_config
-from google.appengine.ext import webapp
-from google.appengine.ext.appstats import recording
-from google.appengine.ext.appstats.recording import (
-  start_recording, end_recording, pre_call_hook, post_call_hook)
+with warnings.catch_warnings():
+  warnings.simplefilter('ignore', DeprecationWarning)
+  from google.appengine.api import memcache as appengine_memcache
+  from google.appengine.api import lib_config
+  from google.appengine.ext import webapp
+  from google.appengine.ext.appstats import recording
+  from google.appengine.ext.appstats.recording import (
+    start_recording, end_recording, pre_call_hook, post_call_hook)
 from tornado.httpclient import AsyncHTTPClient
 from tornado.options import define, options
 from tornado.stack_context import StackContext
@@ -106,7 +109,9 @@ def get_urlspec(prefix):
   '''
   # This import can't happen at the top level because things get horribly
   # confused if it happens before django settings are initialized.
-  from google.appengine.ext.appstats import ui
+  with warnings.catch_warnings():
+    warnings.simplefilter('ignore', DeprecationWarning)
+    from google.appengine.ext.appstats import ui
   wsgi_app = tornado.wsgi.WSGIContainer(webapp.WSGIApplication(ui.URLMAP))
   return tornado.web.url(prefix,
                          tornado.web.FallbackHandler,
