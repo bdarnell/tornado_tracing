@@ -12,9 +12,7 @@ Tornado Tracing is licensed under the Apache License, Version 2.0
 Installation
 ============
 You will need:
-* The latest version of [Tornado](http://tornadoweb.org).  Tracing depends
-  on features that were not present in the 1.0 release of tornado, so
-  you *must* get the latest version from github directly.
+* [Tornado](http://tornadoweb.org), version 1.1 or higher
 * The [Google App Engine SDK](http://code.google.com/appengine/downloads.html)
 * A memcached server and the [python memcache client library](http://www.tummy.com/Community/software/python-memcached/)
 
