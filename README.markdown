@@ -36,4 +36,4 @@ the data is generated, as long as they're all using the same memcache.
 
 Screenshot
 ==========
-![screenshot](http://github.com/bdarnell/tornado_tracing/raw/master/demo/screenshot.png)
+![screenshot](https://raw.githubusercontent.com/bdarnell/tornado_tracing/master/demo/screenshot.png)
